@@ -1,9 +1,11 @@
 """Dashboard Page 2: Fraud Detection."""
 
-import streamlit as st
+import json
+
 import numpy as np
 import requests
-import json
+import streamlit as st
+
 from utils.config import Config
 
 cfg = Config()
@@ -26,8 +28,8 @@ def render():
         raw = st.text_area(
             "Enter comma-separated feature values:",
             value="0.1, -1.2, 0.5, 2.3, -0.8, 1.1, 0.3, -0.5, 0.9, 1.5, "
-                  "-0.2, 0.7, -1.0, 0.4, 0.6, -0.3, 1.2, -0.9, 0.8, 0.1, "
-                  "-0.6, 0.2, -0.4, 1.3, -0.7, 0.5, 0.0, 150.0",
+            "-0.2, 0.7, -1.0, 0.4, 0.6, -0.3, 1.2, -0.9, 0.8, 0.1, "
+            "-0.6, 0.2, -0.4, 1.3, -0.7, 0.5, 0.0, 150.0",
         )
         try:
             features = [float(x.strip()) for x in raw.split(",")]
@@ -49,13 +51,15 @@ def render():
                 st.error(f"API Error {resp.status_code}: {resp.text}")
         except requests.exceptions.ConnectionError:
             st.warning("⚠️ API not running. Showing demo result.")
-            _display_result({
-                "fraud_probability": 0.87,
-                "is_fraud": True,
-                "risk_score": 82.5,
-                "risk_category": "Critical",
-                "anomaly_score": 0.74,
-            })
+            _display_result(
+                {
+                    "fraud_probability": 0.87,
+                    "is_fraud": True,
+                    "risk_score": 82.5,
+                    "risk_category": "Critical",
+                    "anomaly_score": 0.74,
+                }
+            )
 
 
 def _display_result(result: dict):

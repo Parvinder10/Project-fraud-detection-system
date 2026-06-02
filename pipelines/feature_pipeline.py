@@ -1,10 +1,10 @@
 """Phase 2: Feature Engineering Pipeline."""
 
-import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, RobustScaler
+from sklearn.preprocessing import RobustScaler
+
 from utils.logger import get_logger
 
 logger = get_logger("feature_engineering")
@@ -80,17 +80,21 @@ class PaySimFeatureEngineer(BaseEstimator, TransformerMixin):
 
 
 def build_creditcard_pipeline() -> Pipeline:
-    return Pipeline([
-        ("engineer", CreditCardFeatureEngineer()),
-        ("scaler", RobustScaler()),
-    ])
+    return Pipeline(
+        [
+            ("engineer", CreditCardFeatureEngineer()),
+            ("scaler", RobustScaler()),
+        ]
+    )
 
 
 def build_paysim_pipeline() -> Pipeline:
-    return Pipeline([
-        ("engineer", PaySimFeatureEngineer()),
-        ("scaler", RobustScaler()),
-    ])
+    return Pipeline(
+        [
+            ("engineer", PaySimFeatureEngineer()),
+            ("scaler", RobustScaler()),
+        ]
+    )
 
 
 def get_feature_pipeline(dataset: str = "creditcard") -> Pipeline:

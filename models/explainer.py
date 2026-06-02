@@ -1,13 +1,12 @@
 """Phase 6: Explainable AI using SHAP."""
 
+import joblib
 import numpy as np
 import pandas as pd
 import shap
-import joblib
-import json
-from pathlib import Path
-from utils.logger import get_logger
+
 from utils.config import Config
+from utils.logger import get_logger
 
 logger = get_logger("explainer")
 cfg = Config()
@@ -27,9 +26,7 @@ class FraudExplainer:
         except Exception:
             logger.warning("TreeExplainer failed, falling back to KernelExplainer")
             background = shap.sample(X_background, 100)
-            self.explainer = shap.KernelExplainer(
-                self.model.predict_proba, background
-            )
+            self.explainer = shap.KernelExplainer(self.model.predict_proba, background)
         return self
 
     def compute_shap_values(self, X: np.ndarray):
@@ -69,9 +66,11 @@ class FraudExplainer:
         return {
             "top_features": [{"feature": f, "shap_value": round(v, 4)} for f, v in top],
             "reasons": reasons,
-            "base_value": float(self.explainer.expected_value[1]
-                                if isinstance(self.explainer.expected_value, (list, np.ndarray))
-                                else self.explainer.expected_value),
+            "base_value": float(
+                self.explainer.expected_value[1]
+                if isinstance(self.explainer.expected_value, (list, np.ndarray))
+                else self.explainer.expected_value
+            ),
         }
 
     def generate_text_report(self, X: np.ndarray) -> str:

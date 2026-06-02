@@ -1,9 +1,10 @@
 """Unit tests for the Fraud Detection System."""
 
-import pytest
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
+import pytest
 
 
 # ----------------------------------------------------------------
@@ -12,6 +13,7 @@ from pathlib import Path
 class TestMetrics:
     def test_compute_metrics_basic(self):
         from utils.metrics import compute_metrics
+
         y_true = np.array([0, 0, 1, 1, 0, 1])
         y_pred = np.array([0, 0, 1, 0, 0, 1])
         y_prob = np.array([0.1, 0.2, 0.9, 0.4, 0.15, 0.85])
@@ -24,6 +26,7 @@ class TestMetrics:
 
     def test_risk_category(self):
         from utils.metrics import risk_category
+
         assert risk_category(10) == "Low"
         assert risk_category(35) == "Medium"
         assert risk_category(60) == "High"
@@ -35,6 +38,7 @@ class TestMetrics:
 class TestConfig:
     def test_config_defaults(self):
         from utils.config import Config
+
         cfg = Config()
         assert cfg.test_size == 0.2
         assert cfg.random_state == 42
@@ -42,6 +46,7 @@ class TestConfig:
 
     def test_config_paths_created(self):
         from utils.config import Config
+
         cfg = Config()
         assert Path(cfg.model_dir).exists()
         assert Path(cfg.report_dir).exists()
@@ -53,6 +58,7 @@ class TestConfig:
 class TestDataIngestion:
     def test_synthetic_creditcard_load(self):
         from data.ingest import DataIngestion
+
         ing = DataIngestion(dataset="creditcard")
         df = ing.load()  # Will use synthetic data if CSV not found
         assert df is not None
@@ -61,6 +67,7 @@ class TestDataIngestion:
 
     def test_synthetic_paysim_load(self):
         from data.ingest import DataIngestion
+
         ing = DataIngestion(dataset="paysim")
         df = ing.load()
         assert df is not None
@@ -68,6 +75,7 @@ class TestDataIngestion:
 
     def test_clean_removes_duplicates(self):
         from data.ingest import DataIngestion
+
         ing = DataIngestion(dataset="creditcard")
         ing.load()
         # Manually add duplicates
@@ -78,6 +86,7 @@ class TestDataIngestion:
 
     def test_split_shapes(self):
         from data.ingest import DataIngestion
+
         ing = DataIngestion(dataset="creditcard")
         ing.load()
         ing.clean()
@@ -93,8 +102,9 @@ class TestDataIngestion:
 # ----------------------------------------------------------------
 class TestFeaturePipeline:
     def test_creditcard_pipeline(self):
-        from pipelines.feature_pipeline import get_feature_pipeline
         from data.ingest import DataIngestion
+        from pipelines.feature_pipeline import get_feature_pipeline
+
         ing = DataIngestion(dataset="creditcard")
         ing.load()
         ing.clean()
@@ -105,8 +115,9 @@ class TestFeaturePipeline:
         assert X_transformed.shape[1] >= X_tr.shape[1]
 
     def test_paysim_pipeline(self):
-        from pipelines.feature_pipeline import get_feature_pipeline
         from data.ingest import DataIngestion
+        from pipelines.feature_pipeline import get_feature_pipeline
+
         ing = DataIngestion(dataset="paysim")
         ing.load()
         ing.clean()
@@ -122,6 +133,7 @@ class TestFeaturePipeline:
 class TestAnomalyDetector:
     def test_fit_predict(self):
         from models.anomaly_detector import AnomalyDetector
+
         X = np.random.randn(500, 10)
         y = np.zeros(500)
         y[:20] = 1
@@ -140,9 +152,11 @@ class TestAnomalyDetector:
 # ----------------------------------------------------------------
 class TestHybridEngine:
     def test_risk_score_range(self):
-        from models.hybrid_engine import HybridFraudEngine
         from sklearn.ensemble import IsolationForest
         from sklearn.linear_model import LogisticRegression
+
+        from models.hybrid_engine import HybridFraudEngine
+
         X = np.random.randn(200, 10)
         y = np.array([0] * 180 + [1] * 20)
         sup = LogisticRegression(max_iter=500)
@@ -155,9 +169,11 @@ class TestHybridEngine:
         assert all(0 <= s <= 100 for s in scores)
 
     def test_predict_full_keys(self):
-        from models.hybrid_engine import HybridFraudEngine
         from sklearn.ensemble import IsolationForest
         from sklearn.linear_model import LogisticRegression
+
+        from models.hybrid_engine import HybridFraudEngine
+
         X = np.random.randn(200, 10)
         y = np.array([0] * 180 + [1] * 20)
         sup = LogisticRegression(max_iter=500)
@@ -181,7 +197,9 @@ class TestAPI:
     @pytest.fixture
     def client(self):
         from fastapi.testclient import TestClient
+
         from api.main import app
+
         return TestClient(app)
 
     def test_health_endpoint(self, client):

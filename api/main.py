@@ -1,15 +1,16 @@
 """Phase 9: FastAPI Backend."""
 
+from typing import Any, Dict, List, Optional
+
+import joblib
+import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
-import numpy as np
-import joblib
-from pathlib import Path
+
 from utils.config import Config
-from utils.metrics import risk_category
 from utils.logger import get_logger
+from utils.metrics import risk_category
 
 logger = get_logger("api")
 cfg = Config()
@@ -101,6 +102,7 @@ def explain(payload: TransactionFeatures):
     if _supervised is None:
         raise HTTPException(503, "Model not loaded.")
     import shap
+
     X = np.array(payload.features).reshape(1, -1)
     fp = float(_supervised.predict_proba(X)[0, 1])
     try:
@@ -114,10 +116,7 @@ def explain(payload: TransactionFeatures):
     names = payload.feature_names or [f"f{i}" for i in range(len(sv))]
     pairs = sorted(zip(names, sv.tolist()), key=lambda x: abs(x[1]), reverse=True)
     top5 = pairs[:5]
-    reasons = [
-        f"{f} {'increases' if v > 0 else 'decreases'} fraud risk (SHAP={v:.4f})"
-        for f, v in top5
-    ]
+    reasons = [f"{f} {'increases' if v > 0 else 'decreases'} fraud risk (SHAP={v:.4f})" for f, v in top5]
     rs = round(fp * 100, 2)
     return ExplainResponse(
         fraud_probability=round(fp, 4),

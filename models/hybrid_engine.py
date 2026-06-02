@@ -1,10 +1,11 @@
 """Phase 5: Hybrid Fraud Engine combining XGBoost + Isolation Forest."""
 
-import numpy as np
 import joblib
+import numpy as np
+
 from utils.config import Config
-from utils.metrics import risk_category
 from utils.logger import get_logger
+from utils.metrics import risk_category
 
 logger = get_logger("hybrid_engine")
 cfg = Config()
@@ -60,11 +61,13 @@ class HybridFraudEngine:
         rs = self.risk_score(X)
         results = []
         for i in range(len(X)):
-            results.append({
-                "fraud_probability": round(float(fp[i]), 4),
-                "anomaly_score": round(float(an[i]), 4),
-                "risk_score": round(float(rs[i]), 2),
-                "risk_category": risk_category(float(rs[i])),
-                "is_fraud": int(fp[i] >= 0.5 or rs[i] >= 75),
-            })
+            results.append(
+                {
+                    "fraud_probability": round(float(fp[i]), 4),
+                    "anomaly_score": round(float(an[i]), 4),
+                    "risk_score": round(float(rs[i]), 2),
+                    "risk_category": risk_category(float(rs[i])),
+                    "is_fraud": int(fp[i] >= 0.5 or rs[i] >= 75),
+                }
+            )
         return results

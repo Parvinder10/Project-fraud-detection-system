@@ -38,6 +38,7 @@ DATASETS = {
 def check_kaggle():
     try:
         import kaggle  # noqa: F401
+
         return True
     except ImportError:
         print("[ERROR] kaggle package not found. Install with: pip install kaggle")
@@ -57,10 +58,15 @@ def download_dataset(name: str):
     print(f"[INFO] Source: {info['url']}")
 
     cmd = [
-        sys.executable, "-m", "kaggle",
-        "datasets", "download",
-        "-d", info["slug"],
-        "-p", str(DATA_DIR),
+        sys.executable,
+        "-m",
+        "kaggle",
+        "datasets",
+        "download",
+        "-d",
+        info["slug"],
+        "-p",
+        str(DATA_DIR),
         "--unzip",
     ]
 
@@ -78,10 +84,7 @@ def download_dataset(name: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Download fraud detection datasets")
-    parser.add_argument(
-        "--dataset", choices=["creditcard", "paysim", "all"],
-        default="all", help="Dataset to download"
-    )
+    parser.add_argument("--dataset", choices=["creditcard", "paysim", "all"], default="all", help="Dataset to download")
     args = parser.parse_args()
 
     DATA_DIR.mkdir(exist_ok=True)

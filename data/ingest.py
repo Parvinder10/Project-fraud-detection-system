@@ -1,15 +1,16 @@
 """Phase 1: Data Ingestion, EDA, and Preprocessing."""
 
-import pandas as pd
-import numpy as np
-from pathlib import Path
-from sklearn.model_selection import train_test_split
-from imblearn.over_sampling import SMOTE
-from imblearn.under_sampling import RandomUnderSampler
-from imblearn.pipeline import Pipeline as ImbPipeline
-from utils.logger import get_logger
-from utils.config import Config
 import json
+
+import numpy as np
+import pandas as pd
+from imblearn.over_sampling import SMOTE
+from imblearn.pipeline import Pipeline as ImbPipeline
+from imblearn.under_sampling import RandomUnderSampler
+from sklearn.model_selection import train_test_split
+
+from utils.config import Config
+from utils.logger import get_logger
 
 logger = get_logger("data_ingest")
 cfg = Config()
@@ -102,10 +103,12 @@ class DataIngestion:
             X_tr, y_tr = rus.fit_resample(X_tr, y_tr)
         elif strategy == "combined":
             logger.info("Applying combined SMOTE + Under-sampling")
-            pipeline = ImbPipeline([
-                ("smote", SMOTE(random_state=cfg.random_state, k_neighbors=3)),
-                ("under", RandomUnderSampler(random_state=cfg.random_state)),
-            ])
+            pipeline = ImbPipeline(
+                [
+                    ("smote", SMOTE(random_state=cfg.random_state, k_neighbors=3)),
+                    ("under", RandomUnderSampler(random_state=cfg.random_state)),
+                ]
+            )
             X_tr, y_tr = pipeline.fit_resample(X_tr, y_tr)
 
         self.X_train, self.X_test = X_tr, X_te
@@ -146,19 +149,21 @@ class DataIngestion:
         n = 10_000
         fraud_n = 200
         types = ["PAYMENT", "TRANSFER", "CASH_OUT", "DEBIT", "CASH_IN"]
-        normal = pd.DataFrame({
-            "step": np.random.randint(1, 744, n),
-            "type": np.random.choice(types, n),
-            "amount": np.abs(np.random.exponential(200, n)),
-            "nameOrig": [f"C{i}" for i in range(n)],
-            "oldbalanceOrg": np.abs(np.random.exponential(5000, n)),
-            "newbalanceOrig": np.abs(np.random.exponential(4800, n)),
-            "nameDest": [f"M{i}" for i in range(n)],
-            "oldbalanceDest": np.abs(np.random.exponential(3000, n)),
-            "newbalanceDest": np.abs(np.random.exponential(3200, n)),
-            "isFraud": 0,
-            "isFlaggedFraud": 0,
-        })
+        normal = pd.DataFrame(
+            {
+                "step": np.random.randint(1, 744, n),
+                "type": np.random.choice(types, n),
+                "amount": np.abs(np.random.exponential(200, n)),
+                "nameOrig": [f"C{i}" for i in range(n)],
+                "oldbalanceOrg": np.abs(np.random.exponential(5000, n)),
+                "newbalanceOrig": np.abs(np.random.exponential(4800, n)),
+                "nameDest": [f"M{i}" for i in range(n)],
+                "oldbalanceDest": np.abs(np.random.exponential(3000, n)),
+                "newbalanceDest": np.abs(np.random.exponential(3200, n)),
+                "isFraud": 0,
+                "isFlaggedFraud": 0,
+            }
+        )
         fraud = normal.sample(fraud_n, random_state=42).copy()
         fraud["isFraud"] = 1
         fraud["amount"] = np.abs(np.random.exponential(2000, fraud_n))

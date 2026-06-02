@@ -1,16 +1,14 @@
 """Phase 7: Research Experiments with MLflow tracking."""
 
-import numpy as np
-import pandas as pd
-import json
 import mlflow
-from itertools import product
-from xgboost import XGBClassifier
-from sklearn.ensemble import RandomForestClassifier, IsolationForest
+import pandas as pd
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
-from utils.logger import get_logger
+from sklearn.ensemble import IsolationForest, RandomForestClassifier
+from xgboost import XGBClassifier
+
 from utils.config import Config
+from utils.logger import get_logger
 from utils.metrics import compute_metrics
 
 logger = get_logger("experiments")
@@ -41,8 +39,18 @@ class ExperimentRunner:
 
     def _experiment_algorithms(self):
         configs = [
-            ("XGBoost_shallow", XGBClassifier(max_depth=3, n_estimators=100, use_label_encoder=False, eval_metric="logloss", random_state=42)),
-            ("XGBoost_deep", XGBClassifier(max_depth=8, n_estimators=300, use_label_encoder=False, eval_metric="logloss", random_state=42)),
+            (
+                "XGBoost_shallow",
+                XGBClassifier(
+                    max_depth=3, n_estimators=100, use_label_encoder=False, eval_metric="logloss", random_state=42
+                ),
+            ),
+            (
+                "XGBoost_deep",
+                XGBClassifier(
+                    max_depth=8, n_estimators=300, use_label_encoder=False, eval_metric="logloss", random_state=42
+                ),
+            ),
             ("RF_100", RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)),
             ("RF_300", RandomForestClassifier(n_estimators=300, random_state=42, n_jobs=-1)),
         ]
@@ -69,7 +77,13 @@ class ExperimentRunner:
             mn, mx = raw.min(), raw.max()
             y_prob = (raw - mn) / (mx - mn + 1e-9)
             metrics = compute_metrics(self.y_test, y_pred, y_prob)
-            self.results.append({"experiment": "anomaly_threshold", "name": name, **{k: v for k, v in metrics.items() if isinstance(v, (int, float))}})
+            self.results.append(
+                {
+                    "experiment": "anomaly_threshold",
+                    "name": name,
+                    **{k: v for k, v in metrics.items() if isinstance(v, (int, float))},
+                }
+            )
             logger.info(f"{name} | F1={metrics['f1_score']} | ROC-AUC={metrics.get('roc_auc', 'N/A')}")
 
     def _run_single(self, name, model, X_tr, y_tr, experiment_type):
@@ -80,7 +94,13 @@ class ExperimentRunner:
             metrics = compute_metrics(self.y_test, y_pred, y_prob)
             mlflow.log_params({"name": name, "experiment": experiment_type})
             mlflow.log_metrics({k: v for k, v in metrics.items() if isinstance(v, (int, float))})
-            self.results.append({"experiment": experiment_type, "name": name, **{k: v for k, v in metrics.items() if isinstance(v, (int, float))}})
+            self.results.append(
+                {
+                    "experiment": experiment_type,
+                    "name": name,
+                    **{k: v for k, v in metrics.items() if isinstance(v, (int, float))},
+                }
+            )
             logger.info(f"{name} | F1={metrics['f1_score']} | ROC-AUC={metrics.get('roc_auc', 'N/A')}")
 
     def _save_report(self):

@@ -1,19 +1,17 @@
 """Phase 3: ML Model Training, Comparison, and Selection."""
 
-import numpy as np
-import pandas as pd
-import joblib
 import json
-from pathlib import Path
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import RobustScaler
+
+import joblib
 import mlflow
 import mlflow.sklearn
-from utils.logger import get_logger
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from xgboost import XGBClassifier
+
 from utils.config import Config
+from utils.logger import get_logger
 from utils.metrics import compute_metrics
 
 logger = get_logger("ml_trainer")
@@ -21,12 +19,9 @@ cfg = Config()
 
 
 MODELS = {
-    "logistic_regression": LogisticRegression(
-        max_iter=1000, class_weight="balanced", random_state=cfg.random_state
-    ),
+    "logistic_regression": LogisticRegression(max_iter=1000, class_weight="balanced", random_state=cfg.random_state),
     "random_forest": RandomForestClassifier(
-        n_estimators=200, class_weight="balanced",
-        random_state=cfg.random_state, n_jobs=-1
+        n_estimators=200, class_weight="balanced", random_state=cfg.random_state, n_jobs=-1
     ),
     "xgboost": XGBClassifier(
         n_estimators=cfg.n_estimators_xgb,
@@ -62,10 +57,7 @@ class ModelTrainer:
 
                 # Log to MLflow
                 mlflow.log_params({"model": name, "dataset": self.dataset})
-                mlflow.log_metrics({
-                    k: v for k, v in metrics.items()
-                    if isinstance(v, (int, float))
-                })
+                mlflow.log_metrics({k: v for k, v in metrics.items() if isinstance(v, (int, float))})
                 mlflow.sklearn.log_model(model, name)
 
                 self.results[name] = {"model": model, "metrics": metrics}
@@ -103,13 +95,15 @@ class ModelTrainer:
         rows = []
         for name, res in self.results.items():
             m = res["metrics"]
-            rows.append({
-                "Model": name,
-                "Accuracy": m["accuracy"],
-                "Precision": m["precision"],
-                "Recall": m["recall"],
-                "F1 Score": m["f1_score"],
-                "ROC-AUC": m.get("roc_auc", None),
-                "Avg Precision": m.get("avg_precision", None),
-            })
+            rows.append(
+                {
+                    "Model": name,
+                    "Accuracy": m["accuracy"],
+                    "Precision": m["precision"],
+                    "Recall": m["recall"],
+                    "F1 Score": m["f1_score"],
+                    "ROC-AUC": m.get("roc_auc", None),
+                    "Avg Precision": m.get("avg_precision", None),
+                }
+            )
         return pd.DataFrame(rows).set_index("Model")

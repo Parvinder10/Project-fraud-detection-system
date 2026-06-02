@@ -11,7 +11,8 @@ st.set_page_config(
 )
 
 # Custom CSS
-st.markdown("""
+st.markdown(
+    """
 <style>
     .main-header { font-size: 2.2rem; font-weight: 700; color: #1f77b4; }
     .kpi-card { background: #f0f2f6; border-radius: 10px; padding: 1rem; text-align: center; }
@@ -21,7 +22,9 @@ st.markdown("""
     .risk-critical { color: #dc3545; font-weight: bold; }
     .stMetric label { font-size: 0.85rem; }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 with st.sidebar:
     st.markdown("<div class='main-header'>🛡️ FraudGuard</div>", unsafe_allow_html=True)

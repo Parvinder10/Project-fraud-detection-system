@@ -1,11 +1,11 @@
 """Phase 4: Anomaly Detection with Isolation Forest."""
 
-import numpy as np
-import pandas as pd
 import joblib
+import numpy as np
 from sklearn.ensemble import IsolationForest
-from utils.logger import get_logger
+
 from utils.config import Config
+from utils.logger import get_logger
 from utils.metrics import compute_metrics
 
 logger = get_logger("anomaly_detector")

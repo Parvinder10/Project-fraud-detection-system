@@ -17,19 +17,18 @@ Usage:
 """
 
 import argparse
+
 import numpy as np
-import pandas as pd
-from pathlib import Path
 
 from data.ingest import DataIngestion
-from pipelines.feature_pipeline import get_feature_pipeline
-from models.trainer import ModelTrainer
-from models.anomaly_detector import AnomalyDetector
-from models.hybrid_engine import HybridFraudEngine
-from models.explainer import FraudExplainer
 from experiments.runner import ExperimentRunner
-from utils.logger import get_logger
+from models.anomaly_detector import AnomalyDetector
+from models.explainer import FraudExplainer
+from models.hybrid_engine import HybridFraudEngine
+from models.trainer import ModelTrainer
+from pipelines.feature_pipeline import get_feature_pipeline
 from utils.config import Config
+from utils.logger import get_logger
 
 logger = get_logger("train")
 cfg = Config()
@@ -38,21 +37,16 @@ cfg = Config()
 def parse_args():
     parser = argparse.ArgumentParser(description="Train Fraud Detection System")
     parser.add_argument(
-        "--dataset", choices=["creditcard", "paysim"], default="creditcard",
-        help="Dataset to use (default: creditcard)"
+        "--dataset", choices=["creditcard", "paysim"], default="creditcard", help="Dataset to use (default: creditcard)"
     )
     parser.add_argument(
-        "--imbalance", choices=["smote", "undersample", "combined", "none"],
-        default="smote", help="Imbalance handling strategy (default: smote)"
+        "--imbalance",
+        choices=["smote", "undersample", "combined", "none"],
+        default="smote",
+        help="Imbalance handling strategy (default: smote)",
     )
-    parser.add_argument(
-        "--skip-experiments", action="store_true",
-        help="Skip research experiments (faster run)"
-    )
-    parser.add_argument(
-        "--skip-shap", action="store_true",
-        help="Skip SHAP computation (faster run)"
-    )
+    parser.add_argument("--skip-experiments", action="store_true", help="Skip research experiments (faster run)")
+    parser.add_argument("--skip-shap", action="store_true", help="Skip SHAP computation (faster run)")
     return parser.parse_args()
 
 
@@ -74,7 +68,6 @@ def main():
     X_train_raw, X_test_raw, y_train, y_test = ingestion.split(
         strategy=args.imbalance if args.imbalance != "none" else "smote"
     )
-    feature_names_raw = ingestion.feature_names
     logger.info(f"EDA: {eda_report['shape']} | Fraud rate: {eda_report['fraud_rate_pct']}%")
 
     # ----------------------------------------------------------------
@@ -105,7 +98,7 @@ def main():
     # ----------------------------------------------------------------
     logger.info("\n[PHASE 3] ML Model Training & Comparison")
     trainer = ModelTrainer(dataset=args.dataset)
-    results = trainer.train_all(X_train, y_train, X_test, y_test, feature_names)
+    trainer.train_all(X_train, y_train, X_test, y_test, feature_names)
     comparison_df = trainer.get_comparison_df()
     logger.info("\nModel Comparison:")
     logger.info(comparison_df.to_string())
@@ -151,14 +144,14 @@ def main():
         # Use a background sample for efficiency
         background = X_test[:200] if len(X_test) > 200 else X_test
         explainer.build_explainer(background)
-        shap_report = explainer.generate_text_report(background)
+        explainer.generate_text_report(background)
         logger.info("SHAP report generated.")
 
         # Local explanation for first fraud case
         fraud_indices = np.where(np.array(y_test) == 1)[0]
         if len(fraud_indices) > 0:
             idx = fraud_indices[0]
-            local = explainer.local_explanation(X_test[idx:idx+1])
+            local = explainer.local_explanation(X_test[idx : idx + 1])  # noqa: E203
             logger.info("\nLocal explanation for first fraud case:")
             for reason in local["reasons"]:
                 logger.info(f"  - {reason}")

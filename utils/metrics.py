@@ -1,10 +1,16 @@
+from typing import Any, Dict
+
 import numpy as np
 from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score,
-    f1_score, roc_auc_score, confusion_matrix,
-    classification_report, average_precision_score,
+    accuracy_score,
+    average_precision_score,
+    classification_report,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
 )
-from typing import Dict, Any
 
 
 def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_prob: np.ndarray = None) -> Dict[str, Any]:
